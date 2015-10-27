@@ -12,6 +12,7 @@ this file and include it in basic-server.js so that it actually works.
 
 **************************************************************/
 //var qs = require('querystring');
+var fs = require('fs');
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -80,7 +81,20 @@ var requestHandler = function(request, response) {
       var r = JSON.stringify(messages);
       //console.log(r);
       response.end(r);
+    } else if(request.url === '/'){
 
+      headers['Content-Type'] = 'text/html'
+      response.writeHead(statusCode, headers);
+      fs.readFile('./index.html', function (err, html) {
+        if (err) {
+          throw err; 
+        }       
+        //http.createServer(function(request, response) {  
+          //response.writeHeader(200, {"Content-Type": "text/html"});  
+          response.write(html);  
+          response.end();  
+        //}).listen(8000);
+      });
     }
   } else if(request.method === 'OPTIONS'){
     if(request.url === '/message'){
