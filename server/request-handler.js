@@ -11,6 +11,7 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
+var qs = require('querystring');
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -27,6 +28,8 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
+  //console.log(request);
+  //console.log(response);
   console.log("Serving request type " + request.method + " for url " + request.url);
 
   // The outgoing status.
@@ -52,8 +55,38 @@ var requestHandler = function(request, response) {
   //
   // Calling .end "flushes" the response's internal buffer, forcing
   // node to actually send all the data over to the client.
-  response.end("Hello, World!");
+
+  if(request.method === 'POST'){
+    if(request.url === '/message'){
+      var messageTest = '';
+      request.on('data', function (data) {
+        //body += data;
+        messageTest += data;
+        console.log(messageTest)
+        if (messageTest.length > 1e6) { 
+          // FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
+          request.connection.destroy();
+        }
+      });
+      request.on('end', function () {
+        var messageObj = qs.parse(messageTest);
+        console.log(messageObj);
+        messages.push(messageObj);
+      });
+    }
+  } else if(request.method === 'GET'){
+    if(request.url === '/message'){
+      response.end(messages);
+
+    }
+  }
+
+
+
 };
+
+var messages = [];
+
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
 // This code allows this server to talk to websites that
@@ -70,4 +103,6 @@ var defaultCorsHeaders = {
   "access-control-allow-headers": "content-type, accept",
   "access-control-max-age": 10 // Seconds.
 };
+
+module.exports.requestHandler = requestHandler;
 
