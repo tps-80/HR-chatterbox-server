@@ -13,6 +13,7 @@ this file and include it in basic-server.js so that it actually works.
 **************************************************************/
 //var qs = require('querystring');
 var fs = require('fs');
+var mime = require('mime');
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -29,7 +30,7 @@ var requestHandler = function(request, response) {
   // Adding more logging to your server can be an easy way to get passive
   // debugging help, but you should always be careful about leaving stray
   // console.logs in your code.
-  //console.log(request);
+  console.log(request.headers);
   //console.log(response);
   console.log("Serving request type " + request.method + " for url " + request.url);
 
@@ -82,18 +83,36 @@ var requestHandler = function(request, response) {
       //console.log(r);
       response.end(r);
     } else if(request.url === '/'){
-
       headers['Content-Type'] = 'text/html'
       response.writeHead(statusCode, headers);
-      fs.readFile('./index.html', function (err, html) {
+      //console.log(__filename)
+      // fs.readdir(__dirname, function(err, arr){
+      //   if(err){
+      //     throw err;
+      //   }
+      //   console.log(arr)
+      // })
+      fs.readFile(__dirname + '/../client/index.html', function (err, html) {
         if (err) {
           throw err; 
         }       
-        //http.createServer(function(request, response) {  
-          //response.writeHeader(200, {"Content-Type": "text/html"});  
-          response.write(html);  
-          response.end();  
-        //}).listen(8000);
+        
+        response.write(html);  
+        response.end();  
+    
+      });
+    } else {
+      fs.readFile(__dirname + '/../client' + request.url, function (err, file) {
+        if(err) {
+          throw err;
+        }
+
+
+        headers['Content-Type'] = mime.lookup('/../client' + request.url)
+        response.writeHead(statusCode, headers);
+
+        response.write(file);
+        response.end();
       });
     }
   } else if(request.method === 'OPTIONS'){
