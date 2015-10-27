@@ -11,7 +11,7 @@ this file and include it in basic-server.js so that it actually works.
 *Hint* Check out the node module documentation at http://nodejs.org/api/modules.html.
 
 **************************************************************/
-var qs = require('querystring');
+//var qs = require('querystring');
 
 var requestHandler = function(request, response) {
   // Request and Response come from node's http module.
@@ -42,7 +42,7 @@ var requestHandler = function(request, response) {
   //
   // You will need to change this if you are sending something
   // other than plain text, like JSON or HTML.
-  headers['Content-Type'] = "text/plain";
+  headers['Content-Type'] = "application/json";
 
   // .writeHead() writes to the request line and headers of the response,
   // which includes the status and all headers.
@@ -62,22 +62,29 @@ var requestHandler = function(request, response) {
       request.on('data', function (data) {
         //body += data;
         messageTest += data;
-        console.log(messageTest)
+        //console.log(messageTest)
         if (messageTest.length > 1e6) { 
           // FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
           request.connection.destroy();
         }
       });
       request.on('end', function () {
-        var messageObj = qs.parse(messageTest);
-        console.log(messageObj);
-        messages.push(messageObj);
+        var messageObj = JSON.parse(messageTest);
+        //console.log(messageObj);
+        messageObj.objectId = new Date().getTime()
+        messages.results.unshift(messageObj);
       });
     }
   } else if(request.method === 'GET'){
     if(request.url === '/message'){
-      response.end(messages);
+      var r = JSON.stringify(messages);
+      //console.log(r);
+      response.end(r);
 
+    }
+  } else if(request.method === 'OPTIONS'){
+    if(request.url === '/message'){
+      response.end();
     }
   }
 
@@ -85,7 +92,9 @@ var requestHandler = function(request, response) {
 
 };
 
-var messages = [];
+var messages = {
+  results: []
+};
 
 
 // These headers will allow Cross-Origin Resource Sharing (CORS).
@@ -100,7 +109,7 @@ var messages = [];
 var defaultCorsHeaders = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, POST, PUT, DELETE, OPTIONS",
-  "access-control-allow-headers": "content-type, accept",
+  "access-control-allow-headers":  "Content-Type, Accept",
   "access-control-max-age": 10 // Seconds.
 };
 
