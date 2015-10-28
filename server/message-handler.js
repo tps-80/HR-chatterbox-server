@@ -1,11 +1,13 @@
-var fs = require('fs');
-var mime = require('mime');
-var _ = require('underscore');
+//var _ = require('underscore');
+var jq = require('jquery');
 
 // used as a message storage
 // TODO: implement permanent storage
 var messages = {
-  results: []
+  results: [{ text: 'asd',
+  roomname: 'asd',
+  username: 'lalala',
+  objectId: 1445998324818 }]
 };
 
 var defaultHeaders = {
@@ -20,12 +22,13 @@ var sendResponse = function(response, data, statusCode, customHeader){
   statusCode = statusCode || 200;
   customHeader = customHeader || {};
   
-  headers = _.extend(defaultHeaders, customHeader);
+  headers = jq.extend(true, defaultHeaders, customHeader);
+  console.log(defaultHeaders)
   response.writeHead(statusCode, headers);
   response.end(data);
 }
 
-var addIdToMessage = function(message){
+var storeMessage = function(message){
   message.objectId = new Date().getTime();
   messages.results.unshift(message);
   return message;
@@ -41,8 +44,11 @@ var actions = {
     
       var message = JSON.parse(data);
       message = storeMessage(message);
-
-      sendResponse(response, 'Message received', '201', 'text/plain')
+      console.log(messages)
+      var customHeader = {
+        'Content-Type': 'text/plain'
+      }
+      sendResponse(response, 'Message received', '201', customHeader);
     });
   },
   'GET': function(request, response){
@@ -56,77 +62,6 @@ var actions = {
 var requestHandler = function(request, response) {
   var action = actions[request.method];
   action(request, response);
-
-  // console.log(request.headers);
-  // console.log("Serving request type " + request.method + " for url " + request.url);
-
-  // var statusCode = 200;
-  // var headers = defaultCorsHeaders;
-  // headers['Content-Type'] = "application/json";
-  // response.writeHead(statusCode, headers);
-
-
-
-
-  // if(request.method === 'POST'){
-  //   if(request.url === '/message'){
-  //     var messageTest = '';
-  //     request.on('data', function (data) {
-  //       //body += data;
-  //       messageTest += data;
-  //       //console.log(messageTest)
-  //  -->  if (messageTest.length > 1e6) { 
-  //         // FLOOD ATTACK OR FAULTY CLIENT, NUKE REQUEST
-  //         request.connection.destroy();
-  //       }
-  //     });
-  //     request.on('end', function () {
-  //       var messageObj = JSON.parse(messageTest);
-  //       //console.log(messageObj);
-  //       messageObj.objectId = new Date().getTime()
-  //       messages.results.unshift(messageObj);
-  //     });
-  //   }
-  // } else if(request.method === 'GET'){
-  //   if(request.url === '/message'){
-  //     var r = JSON.stringify(messages);
-  //     //console.log(r);
-  //     response.end(r);
-  //   } else if(request.url === '/'){
-  //     headers['Content-Type'] = 'text/html'
-  //     response.writeHead(statusCode, headers);
-      
-  //     fs.readFile(__dirname + '/../client/index.html', function (err, html) {
-  //       if (err) {
-  //         throw err; 
-  //       }       
-        
-  //       response.write(html);  
-  //       response.end();  
-    
-  //     });
-  //   } else {
-  //     fs.readFile(__dirname + '/../client' + request.url, function (err, file) {
-  //       if(err) {
-  //         throw err;
-  //       }
-
-
-  //       headers['Content-Type'] = mime.lookup('/../client' + request.url)
-  //       response.writeHead(statusCode, headers);
-
-  //       response.write(file);
-  //       response.end();
-  //     });
-  //   }
-  // } else if(request.method === 'OPTIONS'){
-  //   if(request.url === '/message'){
-  //     response.end();
-  //   }
-  // }
-
-
-
 };
 
 
